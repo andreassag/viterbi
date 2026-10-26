@@ -78,8 +78,8 @@ pub fn viterbi_striped(hmm: &ProfileHmm, query: &[u8]) -> ViterbiResult {
             }
 
             dp_m[q] = next_m;
-            prev_lane_last = dp_m[q_len - 1][STRIPE_WIDTH - 1];
         }
+        prev_lane_last = dp_m[q_len - 1][STRIPE_WIDTH - 1];
     }
 
     // Call scalar backtrace to get exact coordinates if hit is significant

@@ -82,12 +82,62 @@ pub fn viterbi_scalar(hmm: &ProfileHmm, query: &[u8]) -> ViterbiResult {
     // Backtrace
     let mut cur_k = best_k;
     let mut cur_j = best_j;
+    let mut cur_state = if dp_m[best_k][best_j] >= dp_i[best_k][best_j] && dp_m[best_k][best_j] >= dp_d[best_k][best_j] {
+        'M'
+    } else if dp_i[best_k][best_j] >= dp_d[best_k][best_j] {
+        'I'
+    } else {
+        'D'
+    };
+
     let mut path = Vec::new();
 
     while cur_k > 0 && cur_j > 0 {
-        path.push('M');
-        cur_k -= 1;
-        cur_j -= 1;
+        if cur_state == 'M' {
+            path.push('M');
+            let t = hmm.transitions[cur_k];
+            let from_begin = if cur_k == 1 { 0.0 } else { neg_inf };
+
+            let m_prev = dp_m[cur_k - 1][cur_j - 1] + t[0];
+            let i_prev = dp_i[cur_k - 1][cur_j - 1] + t[3];
+            let d_prev = dp_d[cur_k - 1][cur_j - 1] + t[5];
+
+            if from_begin >= m_prev && from_begin >= i_prev && from_begin >= d_prev {
+                cur_k -= 1;
+                cur_j -= 1;
+                break;
+            } else if m_prev >= i_prev && m_prev >= d_prev {
+                cur_state = 'M';
+            } else if i_prev >= d_prev {
+                cur_state = 'I';
+            } else {
+                cur_state = 'D';
+            }
+            cur_k -= 1;
+            cur_j -= 1;
+        } else if cur_state == 'I' {
+            path.push('I');
+            let t = hmm.transitions[cur_k];
+            let m_to_i = dp_m[cur_k][cur_j - 1] + t[1];
+            let i_to_i = dp_i[cur_k][cur_j - 1] + t[4];
+            if m_to_i >= i_to_i {
+                cur_state = 'M';
+            } else {
+                cur_state = 'I';
+            }
+            cur_j -= 1;
+        } else {
+            path.push('D');
+            let t = hmm.transitions[cur_k];
+            let m_to_d = dp_m[cur_k - 1][cur_j] + t[2];
+            let d_to_d = dp_d[cur_k - 1][cur_j] + t[6];
+            if m_to_d >= d_to_d {
+                cur_state = 'M';
+            } else {
+                cur_state = 'D';
+            }
+            cur_k -= 1;
+        }
     }
 
     path.reverse();
