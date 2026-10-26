@@ -1,0 +1,17 @@
+[package]
+name = "viterbi"
+version = "1.0.0"
+edition = "2021"
+authors = ["Andreas Sagen"]
+description = "Striped Profile HMM search and alignment engine (hmmer-lite) in Rust"
+license = "MIT"
+
+[lib]
+name = "viterbi"
+path = "src/lib.rs"
+
+[[bin]]
+name = "viterbi"
+path = "src/main.rs"
+
+[dependencies]
